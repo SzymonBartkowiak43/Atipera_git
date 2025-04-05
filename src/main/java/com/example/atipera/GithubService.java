@@ -1,11 +1,13 @@
 package com.example.atipera;
 
 
+import com.example.atipera.exception.UserNotFoundException;
 import com.example.atipera.models.Branch;
 import com.example.atipera.models.Repository;
 import com.example.atipera.response.BranchResponse;
 import com.example.atipera.response.RepositoryResponse;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -15,7 +17,6 @@ import java.util.List;
 public class GithubService {
 
     private final RestClient restClient;
-
 
     public GithubService(RestClient restClient) {
         this.restClient = restClient;
@@ -36,27 +37,24 @@ public class GithubService {
     }
 
     private List<Repository> getRepositories(String username) {
-        List<Repository> repositories  = restClient.get()
+        return restClient.get()
                 .uri("/users/{username}/repos", username)
                 .retrieve()
+                .onStatus(
+                        HttpStatusCode::is4xxClientError,
+                        (request, response) -> {
+                            throw new UserNotFoundException();
+                        }
+                )
                 .body(new ParameterizedTypeReference<>() {
                 });
-        System.out.println("Repositories: " + repositories.size());
-        return repositories;
     }
 
     private List<Branch> getBranches(String username, String repositoryName) {
         return restClient.get()
                 .uri("/repos/{username}/{repo}/branches", username, repositoryName)
                 .retrieve()
-                .onStatus(
-                        status -> status.is4xxClientError() || status.is5xxServerError(),
-                        (request, response) -> {
-                            throw new RuntimeException(
-                                    "Error fetching branches: " + response.getStatusCode() + " - " + response.getStatusText()
-                            );
-                        }
-                )
                 .body(new ParameterizedTypeReference<>() {});
     }
+
 }
