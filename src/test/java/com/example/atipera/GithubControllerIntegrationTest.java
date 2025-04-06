@@ -1,16 +1,22 @@
 package com.example.atipera;
 
+import com.example.atipera.exception.UserNotFoundException;
 import com.example.atipera.response.ErrorResponse;
 import com.example.atipera.response.RepositoryResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
@@ -29,11 +35,24 @@ class GithubControllerIntegrationTest {
     @Autowired
     public ObjectMapper objectMapper;
 
+    @Autowired
+    private RestClient.Builder restClientBuilder;
+
+    private MockRestServiceServer mockServer;
+
+    @BeforeEach
+    void setUp() {
+        mockServer = MockRestServiceServer.bindTo(restClientBuilder).build();
+    }
+
+
     @Test
     public void getResponseWhenUserNotExistsShouldReturnNotFound() throws Exception {
         // given
-        ResultActions performUserNotExists = mockMvc.perform(get("/api/github/nonexistentuserasdfasdf/repos")
+        String username = "nonexistentuserasdfasdf";
+        ResultActions performUserNotExists = mockMvc.perform(get("/api/github/" + username + "/repos")
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
+
         // when
         String contentAsJson = performUserNotExists.andExpect(status().isNotFound())
                 .andReturn()
@@ -51,7 +70,8 @@ class GithubControllerIntegrationTest {
     @Test
     public void getResponseWhenUserExistsShouldReturnRepositoryList() throws Exception {
         // given
-        ResultActions performUserRepository = mockMvc.perform(get("/api/github/SzymonBartkowiak43/repos")
+        String username = "SzymonBartkowiak43";
+        ResultActions performUserRepository = mockMvc.perform(get("/api/github/" + username + "/repos")
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
         // when
 
@@ -69,29 +89,29 @@ class GithubControllerIntegrationTest {
         );
     }
 
-//    @Test
-//    public void getResponseShouldNotContainsForkRepository() throws Exception {
-//        // given
-//        ResultActions performUserRepository = mockMvc.perform(get("/api/github/SzymonBartkowiak43/repos")
-//                .contentType(MediaType.APPLICATION_JSON_VALUE));
-//
-//
-//        // when
-//        String contentAsJson = performUserRepository.andExpect(status().isOk())
-//                .andReturn()
-//                .getResponse()
-//                .getContentAsString();
-//
-//        List<RepositoryResponse> responseList = objectMapper.readValue(contentAsJson, new TypeReference<>() {
-//        });
-//
-//        //then
-//        assertAll(
-//                () -> assertThat(responseList).allMatch(repo -> !repo.getBranches().)
-//        );
-//    }
+    @Test
+    public void getResponseShouldNotContainsForkRepository() throws Exception {
+        // given
+        String username = "SzymonBartkowiak43";
+        ResultActions performUserRepository = mockMvc.perform(get("/api/github/" + username + "/repos")
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
 
+        // when
+        String contentAsJson = performUserRepository.andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
+        List<RepositoryResponse> responseList = objectMapper.readValue(contentAsJson, new TypeReference<>() {
+        });
 
+        List<String> knownForkNames = List.of("forkForTest ", "ForkRepository");
+
+        List<String> returnedRepoNames = responseList.stream()
+                .map(RepositoryResponse::getRepositoryName)
+                .toList();
+
+        assertThat(returnedRepoNames).doesNotContainAnyElementsOf(knownForkNames);
+    }
 
 }
