@@ -1,10 +1,10 @@
 package com.example.atipera.response;
 
-public class ErrorResponse {
+public class ExceptionResponse {
     private int status;
     private String message;
 
-    public ErrorResponse(int status, String message) {
+    public ExceptionResponse(int status, String message) {
         this.status = status;
         this.message = message;
     }

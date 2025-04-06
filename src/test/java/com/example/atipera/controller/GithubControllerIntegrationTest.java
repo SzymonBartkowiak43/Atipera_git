@@ -1,7 +1,6 @@
-package com.example.atipera;
+package com.example.atipera.controller;
 
-import com.example.atipera.exception.UserNotFoundException;
-import com.example.atipera.response.ErrorResponse;
+import com.example.atipera.response.ExceptionResponse;
 import com.example.atipera.response.RepositoryResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -59,7 +56,7 @@ class GithubControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        ErrorResponse errorResponse = objectMapper.readValue(contentAsJson, ErrorResponse.class);
+        ExceptionResponse errorResponse = objectMapper.readValue(contentAsJson, ExceptionResponse.class);
         //then
         assertAll(
                 () -> assertThat(errorResponse.getStatus()).isEqualTo(404),

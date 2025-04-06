@@ -1,5 +1,4 @@
-package com.example.atipera;
-
+package com.example.atipera.service;
 
 import com.example.atipera.exception.UserNotFoundException;
 import com.example.atipera.models.Branch;
@@ -7,18 +6,18 @@ import com.example.atipera.models.Repository;
 import com.example.atipera.response.BranchResponse;
 import com.example.atipera.response.RepositoryResponse;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
 @Service
-public class GithubService {
+public class GithubServiceImplement implements GithubService {
 
     private final RestClient restClient;
 
-    public GithubService(RestClient restClient) {
+    public GithubServiceImplement(RestClient restClient) {
         this.restClient = restClient;
     }
 
@@ -41,7 +40,7 @@ public class GithubService {
                 .uri("/users/{username}/repos", username)
                 .retrieve()
                 .onStatus(
-                        HttpStatusCode::is4xxClientError,
+                        status -> status.equals(HttpStatus.NOT_FOUND),
                         (request, response) -> {
                             throw new UserNotFoundException();
                         }

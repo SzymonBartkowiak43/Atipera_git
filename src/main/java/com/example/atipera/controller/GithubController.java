@@ -1,14 +1,15 @@
-package com.example.atipera;
+package com.example.atipera.controller;
 
 
 
 import com.example.atipera.response.RepositoryResponse;
+import com.example.atipera.service.GithubService;
+import com.example.atipera.service.GithubServiceImplement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class GithubController {
 
     private final GithubService githubService;
 
-    public GithubController(GithubService githubService) {
+    public GithubController(GithubServiceImplement githubService) {
         this.githubService = githubService;
     }
 
