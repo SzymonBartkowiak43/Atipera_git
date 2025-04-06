@@ -13,6 +13,7 @@ public class RepositoryResponse {
         this.branches = branches;
     }
 
+
     public RepositoryResponse() {
     }
 
